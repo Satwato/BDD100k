@@ -1,4 +1,3 @@
-
 import os
 import torch
 from torch.utils.data import DataLoader, Dataset
@@ -12,16 +11,22 @@ from torchmetrics.detection import MeanAveragePrecision
 from collections import Counter
 import warnings
 import torchmetrics
-from tqdm import tqdm 
+from tqdm import tqdm
 import traceback
 import matplotlib.pyplot as plt
 from data_utils import BDDDataModule
+
 warnings.filterwarnings("ignore")
+
 
 class CFG:
     MODEL_CHECKPOINT = "PekingU/rtdetr_r18vd"
-    TRAIN_ANNOTATION_PATH = "/data/bdd100k_images_100k/bdd100k/images/100k/train/_annotations.coco.json"
-    VAL_ANNOTATION_PATH = "/data/bdd100k_images_100k/bdd100k/images/100k/val/_annotations.coco.json"
+    TRAIN_ANNOTATION_PATH = (
+        "/data/bdd100k_images_100k/bdd100k/images/100k/train/_annotations.coco.json"
+    )
+    VAL_ANNOTATION_PATH = (
+        "/data/bdd100k_images_100k/bdd100k/images/100k/val/_annotations.coco.json"
+    )
     TRAIN_IMG_DIR = "/data/bdd100k_images_100k/bdd100k/images/100k/train"
     VAL_IMG_DIR = "/data/bdd100k_images_100k/bdd100k/images/100k/val"
     CHECKPOINT_PATH = "/bdd_files/train/"
@@ -31,72 +36,100 @@ class CFG:
     WEIGHT_DECAY = 1e-4
     MAX_EPOCHS = 10
 
+
 class RTDETR_FineTuner(pl.LightningModule):
     def __init__(self, config, num_classes, class_names, class_weights=None):
         super().__init__()
         self.cfg = config
         self.class_names = class_names
-        
-        
+
         model_config = AutoConfig.from_pretrained(
             self.cfg.MODEL_CHECKPOINT,
             num_labels=num_classes,
         )
-        
-        
+
         if class_weights is not None:
             print("Applying custom class weights to the model's configuration.")
             # The 'alpha' parameter of the Focal Loss is used for class weighting
-            model_config.focal_alpha = class_weights.tolist() # Must be a list for the config
-            
-        
+            model_config.focal_alpha = (
+                class_weights.tolist()
+            )  # Must be a list for the config
+
         self.model = AutoModelForObjectDetection.from_pretrained(
             self.cfg.MODEL_CHECKPOINT,
             config=model_config,
-            ignore_mismatched_sizes=True # Still needed to replace the head
+            ignore_mismatched_sizes=True,  # Still needed to replace the head
         )
 
-        self.val_map_metric = MeanAveragePrecision(box_format="cxcywh", class_metrics=True)
+        self.val_map_metric = MeanAveragePrecision(
+            box_format="cxcywh", class_metrics=True
+        )
         self.save_hyperparameters()
 
     def forward(self, pixel_values, pixel_mask=None):
         return self.model(pixel_values=pixel_values, pixel_mask=pixel_mask)
 
     def training_step(self, batch, batch_idx):
-        outputs = self.model(pixel_values=batch['pixel_values'], pixel_mask=batch.get('pixel_mask'), labels=batch['labels'])
+        outputs = self.model(
+            pixel_values=batch["pixel_values"],
+            pixel_mask=batch.get("pixel_mask"),
+            labels=batch["labels"],
+        )
         loss = outputs.loss
-        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(
+            "train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True
+        )
         return loss
 
     def validation_step(self, batch, batch_idx):
-        outputs = self.model(pixel_values=batch['pixel_values'], pixel_mask=batch.get('pixel_mask'), labels=batch['labels'])
+        outputs = self.model(
+            pixel_values=batch["pixel_values"],
+            pixel_mask=batch.get("pixel_mask"),
+            labels=batch["labels"],
+        )
         loss = outputs.loss
-        self.log('val_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(
+            "val_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True
+        )
         return loss
-   
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=self.cfg.LEARNING_RATE, weight_decay=self.cfg.WEIGHT_DECAY)
+        optimizer = torch.optim.AdamW(
+            self.parameters(),
+            lr=self.cfg.LEARNING_RATE,
+            weight_decay=self.cfg.WEIGHT_DECAY,
+        )
         return optimizer
 
 
-if __name__ == '__main__':
-    
+if __name__ == "__main__":
+
     pl.seed_everything(42)
     data_module = BDDDataModule(CFG)
-    data_module.setup() 
-    
+    data_module.setup()
+
     model = RTDETR_FineTuner(
-        CFG, 
+        CFG,
         num_classes=len(data_module.class_names),
         class_names=data_module.class_names,
-        class_weights=data_module.class_weights
+        class_weights=data_module.class_weights,
     )
-    
 
-    checkpoint_callback = ModelCheckpoint(monitor='val_loss', mode='min', save_top_k=1, dirpath=f'{CFG.CHECKPOINT_PATH}/checkpoints/', filename='rtdetr-bdd-best-{epoch:02d}-{val_loss:.4f}')
-    trainer = pl.Trainer(max_epochs=CFG.MAX_EPOCHS, accelerator='auto', devices='auto', callbacks=[checkpoint_callback], precision="16-mixed")
-    
+    checkpoint_callback = ModelCheckpoint(
+        monitor="val_loss",
+        mode="min",
+        save_top_k=1,
+        dirpath=f"{CFG.CHECKPOINT_PATH}/checkpoints/",
+        filename="rtdetr-bdd-best-{epoch:02d}-{val_loss:.4f}",
+    )
+    trainer = pl.Trainer(
+        max_epochs=CFG.MAX_EPOCHS,
+        accelerator="auto",
+        devices="auto",
+        callbacks=[checkpoint_callback],
+        precision="16-mixed",
+    )
+
     print("Starting fine-tuning...")
     trainer.fit(model, data_module)
     print("Fine-tuning finished.")

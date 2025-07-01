@@ -102,6 +102,7 @@ def draw_boxes_on_image(image_path: Path, boxes_df: pd.DataFrame):
 
     return img
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--train-df-path", type=Path, required=True)
 parser.add_argument("--val-df-path", type=Path, required=True)
