@@ -71,6 +71,7 @@ def plot_categorical_distribution(df: pd.DataFrame, metric: str, title: str):
     fig, ax = plt.subplots(figsize=(10, 5))
     df[metric].value_counts().plot(kind="pie", autopct="%1.1f%%", ax=ax, startangle=90)
     ax.set_title(title, fontsize=16)
+    ax.legend()
     ax.set_ylabel("")
     st.pyplot(fig)
 

@@ -1,11 +1,13 @@
-# BDD Project Workflow
-
+# BDD Project
+Link to Analysis: [Analysis](https://docs.google.com/document/d/17T18AqYnrkmfbcfiDiwpSvpI646yqBGhLBX1WHa2zzk/edit?usp=sharing)
 ## Prerequisites
 Ensure you have Docker installed on your system.
 Pull the repo and run 
-```docker build -t bdd-project-env
 ```
-
+docker build -t bdd-project-env
+```
+I tried finetuning RTDETR for 6 epochs: [Checkpoint](https://drive.google.com/file/d/1Ry-zMJ80B4OOYwW-UMTmZ7MeI3LYnIjy/view?usp=sharing)
+Please put it under `train/checkpoints/` 
 
 ## Workflow Steps
 
