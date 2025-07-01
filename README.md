@@ -26,7 +26,7 @@ docker run --rm \
 
 ### 2. Run Streamlit for Analysis
 Start the Streamlit app to perform analysis:
-
+*PLEASE SCROL HORIZONTALLY AND COPY THE ENTIRE COMMAND, STREAMLIT ACTS WEIRD WITH MULTILINE ARGPARSE HENCE I HAD TO PUT IT ALL IN ONE LINE*
 ```bash
 docker run -p 8501:8501 --rm \
   -v "/path/to/assignment_data_bdd/:/data" \
@@ -82,7 +82,7 @@ docker run --rm \
 
 ### 6. Visualize Results
 Run the Streamlit app to visualize results and perform qualitative analysis:
-
+*PLEASE SCROL HORIZONTALLY AND COPY THE ENTIRE COMMAND, STREAMLIT ACTS WEIRD WITH MULTILINE ARGPARSE HENCE I HAD TO PUT IT ALL IN ONE LINE*
 ```bash
 docker run -p 8501:8501 --rm \
   -v "/path/to/assignment_data_bdd/:/data" \
