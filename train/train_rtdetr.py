@@ -20,12 +20,13 @@ warnings.filterwarnings("ignore")
 
 class CFG:
     MODEL_CHECKPOINT = "PekingU/rtdetr_r18vd"
-    TRAIN_ANNOTATION_PATH = "/Users/satwato.dey/Documents/assignment_data_bdd/bdd100k_images_100k/bdd100k/images/100k/train/_annotations.coco.json"
-    VAL_ANNOTATION_PATH = "/Users/satwato.dey/Documents/assignment_data_bdd/bdd100k_images_100k/bdd100k/images/100k/valid/_annotations.coco.json"
-    TRAIN_IMG_DIR = "/Users/satwato.dey/Documents/assignment_data_bdd/bdd100k_images_100k/bdd100k/images/100k/train"
-    VAL_IMG_DIR = "/Users/satwato.dey/Documents/assignment_data_bdd/bdd100k_images_100k/bdd100k/images/100k/valid"
+    TRAIN_ANNOTATION_PATH = "/data/bdd100k_images_100k/bdd100k/images/100k/train/_annotations.coco.json"
+    VAL_ANNOTATION_PATH = "/data/bdd100k_images_100k/bdd100k/images/100k/val/_annotations.coco.json"
+    TRAIN_IMG_DIR = "/data/bdd100k_images_100k/bdd100k/images/100k/train"
+    VAL_IMG_DIR = "/data/bdd100k_images_100k/bdd100k/images/100k/val"
+    CHECKPOINT_PATH = "/bdd_files/train/"
     BATCH_SIZE = 16
-    NUM_WORKERS = 0
+    NUM_WORKERS = 4
     LEARNING_RATE = 1e-5
     WEIGHT_DECAY = 1e-4
     MAX_EPOCHS = 10
@@ -93,8 +94,8 @@ if __name__ == '__main__':
     )
     
 
-    checkpoint_callback = ModelCheckpoint(monitor='val_loss', mode='min', save_top_k=1, dirpath='checkpoints/', filename='rtdetr-bdd-best-{epoch:02d}-{val_loss:.4f}')
-    trainer = pl.Trainer(max_epochs=CFG.MAX_EPOCHS, accelerator='auto', devices='auto', callbacks=[checkpoint_callback], precision="16-mixed", limit_train_batches=10, limit_val_batches=10)
+    checkpoint_callback = ModelCheckpoint(monitor='val_loss', mode='min', save_top_k=1, dirpath=f'{CFG.CHECKPOINT_PATH}/checkpoints/', filename='rtdetr-bdd-best-{epoch:02d}-{val_loss:.4f}')
+    trainer = pl.Trainer(max_epochs=CFG.MAX_EPOCHS, accelerator='auto', devices='auto', callbacks=[checkpoint_callback], precision="16-mixed")
     
     print("Starting fine-tuning...")
     trainer.fit(model, data_module)

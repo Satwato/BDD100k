@@ -117,8 +117,8 @@ if __name__ == "__main__":
         "--split-name",
         type=str,
         required=True,
-        choices=["train", "valid"],
-        help="Name of the data split (e.g., 'train', 'valid').",
+        choices=["train", "val"],
+        help="Name of the data split (e.g., 'train', 'val').",
     )
     args = parser.parse_args()
 

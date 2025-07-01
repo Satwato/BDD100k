@@ -1,5 +1,7 @@
 
+import argparse
 import os
+from pathlib import Path
 import torch
 from torch.utils.data import DataLoader, Dataset
 import pytorch_lightning as pl
@@ -25,12 +27,12 @@ warnings.filterwarnings("ignore")
 
 class CFG:
     MODEL_CHECKPOINT = "PekingU/rtdetr_r18vd"
-    TRAIN_ANNOTATION_PATH = "/Users/satwato.dey/Documents/assignment_data_bdd/bdd100k_images_100k/bdd100k/images/100k/train/_annotations.coco.json"
-    VAL_ANNOTATION_PATH = "/Users/satwato.dey/Documents/assignment_data_bdd/bdd100k_images_100k/bdd100k/images/100k/valid/_annotations.coco.json"
-    TRAIN_IMG_DIR = "/Users/satwato.dey/Documents/assignment_data_bdd/bdd100k_images_100k/bdd100k/images/100k/train/"
-    VAL_IMG_DIR = "/Users/satwato.dey/Documents/assignment_data_bdd/bdd100k_images_100k/bdd100k/images/100k/valid/"
-    TRAINED_MODEL_PATH = "/Users/satwato.dey/Documents/BDD_Bosch/train/checkpoints/rtdetr-bdd-best-epoch=05-val_loss=8.8081.ckpt"
-    PROCESSED_DATA_PATH = "/Users/satwato.dey/Documents/BDD_Bosch/"
+    TRAIN_ANNOTATION_PATH = "/data/bdd100k_images_100k/bdd100k/images/100k/train/_annotations.coco.json"
+    VAL_ANNOTATION_PATH = "/data/bdd100k_images_100k/bdd100k/images/100k/val/_annotations.coco.json"
+    TRAIN_IMG_DIR = "/data/bdd100k_images_100k/bdd100k/images/100k/train/"
+    VAL_IMG_DIR = "/data/bdd100k_images_100k/bdd100k/images/100k/val/"
+    TRAINED_MODEL_PATH = "/bdd_files/train/checkpoints/rtdetr-bdd-best-epoch=06-val_loss=5.1101.ckpt"
+    PROCESSED_DATA_PATH = "/bdd_files"
     BATCH_SIZE = 16
     NUM_WORKERS = 4
     
@@ -323,6 +325,16 @@ def print_mAP_results(map_results, id2label, title="mAP Results"):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description="Generate dataframes for data analysis"
+    )
+    parser.add_argument(
+        "--output-path",
+        type=Path,
+        required=True,
+        help="Path where the output parquet file will be saved.",
+    )
+    args = parser.parse_args()
 
     cfg = CFG
     try:
@@ -334,14 +346,14 @@ if __name__ == '__main__':
         val_loader = data_module.val_dataloader()
         id2label = data_module.val_dataset.id2cat
         map_result, map_metric = calculate_mAP(preds, targets, data_module)
-        df_granular = pd.read_parquet(f"{cfg.PROCESSED_DATA_PATH}extracted_data_val2.pq")
+        df_granular = pd.read_parquet(f"{cfg.PROCESSED_DATA_PATH}extracted_data_val.pq")
         image_to_context = df_granular.drop_duplicates('image_name').set_index('image_name')
         stratified_metrics(image_to_context, targets, preds, id2label)
         all_matched_predictions_for_json = {}
         for pred, target in tqdm(zip(preds, targets)):
             matched_results = match_predictions(pred, target)
             all_matched_predictions_for_json[target['image_name']] = matched_results
-        with open("results_iou.json", 'w') as f:
+        with open(f"{str(args.output_path)}/results_iou.json", 'w') as f:
             json.dump(all_matched_predictions_for_json, f, indent=4)
     except Exception as e:
         print(traceback.format_exc())

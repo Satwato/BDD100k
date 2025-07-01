@@ -216,8 +216,8 @@ if __name__ == "__main__":
     df_val_granular = parser_val.parse_to_dataframe()
 
     df_train_granular.to_parquet(
-        f"{str(args.output_path)}/extracted_data_2.pq", index=False
+        f"{str(args.output_path)}/extracted_data.pq", index=False
     )
     df_val_granular.to_parquet(
-        f"{str(args.output_path)}/extracted_data_val2.pq", index=False
+        f"{str(args.output_path)}/extracted_data_val.pq", index=False
     )

@@ -141,12 +141,11 @@ elif dataset_choice == "Validation":
     df_display = df_val
     image_dir_display = (
         args.base_data_path
-        / "assignment_data_bdd"
         / "bdd100k_images_100k"
         / "bdd100k"
         / "images"
         / "100k"
-        / "valid"
+        / "val"
     )
 else:
     df_display = None

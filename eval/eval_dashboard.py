@@ -43,7 +43,7 @@ def load_category_mapping(coco_path: Path):
     """Loads the category ID to name mapping from a COCO annotation file."""
     try:
         
-        coco_json = COCO(str(coco_path).replace("valid", "train"))
+        coco_json = COCO(str(coco_path).replace("val", "train"))
         cat_ids = sorted(coco_json.getCatIds())
         class_names = [coco_json.cats[cat_id]['name'] for cat_id in cat_ids]
         id2label = {i: name for i, name in enumerate(class_names)}
@@ -130,7 +130,6 @@ def draw_on_image(image_path: Path, gt_box_to_highlight, matched_pred, id2cat):
 
 st.title("Qualitative Model Evaluation Dashboard")
 
-# --- Command Line Argument Parsing ---
 parser = argparse.ArgumentParser()
 parser.add_argument("--matched-predictions-path", type=Path, required=True)
 parser.add_argument("--image-dir", type=Path, required=True)
@@ -143,7 +142,7 @@ except SystemExit:
     st.stop()
 
 
-# --- Load Data ---
+
 df_val_granular = load_processed_data(args.processed_data_path)
 predictions = load_matched_predictions(args.matched_predictions_path)
 id2cat = load_category_mapping(args.coco_annotations_path)
@@ -151,17 +150,14 @@ id2cat = load_category_mapping(args.coco_annotations_path)
 if df_val_granular is None or predictions is None or id2cat is None:
     st.stop()
 
-# Create the main dataframe for evaluation
+
 df_eval = create_evaluation_dataframe(predictions, df_val_granular, id2cat)
 
 
-# --- Sidebar and Page Navigation ---
 st.sidebar.title("Evaluation Dashboard")
 page = st.sidebar.radio("Choose a Page", ["Qualitative Explorer", "Error Analysis"])
 st.sidebar.markdown("---")
 
-
-# --- Page 1: Qualitative Explorer ---
 if page == "Qualitative Explorer":
     st.header("Qualitative Sample Explorer")
     st.info("Visually inspect model performance on specific slices of data. Use the filters to find interesting cases.")
@@ -240,7 +236,6 @@ if page == "Qualitative Explorer":
         if image_with_boxes is not None:
             st.image(image_with_boxes, use_column_width=True)
 
-# --- Page 2: Error Analysis ---
 elif page == "Error Analysis":
     st.header("Error Analysis Statistics")
     st.info("This page provides a quantitative breakdown of the model's most common failure modes.")
@@ -254,7 +249,6 @@ elif page == "Error Analysis":
         st.markdown("---")
         st.subheader(f"Analysis for Ground Truth: `{analysis_category}`")
 
-        # --- Overall Detection Status Chart ---
         st.markdown("#### Overall Detection Status")
         
         total_gt = len(df_cat)
@@ -300,19 +294,16 @@ elif page == "Error Analysis":
                 st.success(f"No misclassification errors found for '{analysis_category}'.")
 
         with col2:
-            # --- False Negative Analysis ---
             st.markdown("#### Missed Detections (False Negatives)")
             missed_df = df_cat[df_cat['is_detected'] == False]
             if not missed_df.empty:
                 st.write(f"**Characteristics of the {len(missed_df)} missed '{analysis_category}' objects:**")
                 
-                # Show distribution of difficulty for missed objects
                 fig, ax = plt.subplots()
                 sns.countplot(data=missed_df, x='difficulty_score', ax=ax)
                 ax.set_title("Difficulty Score of Missed Objects")
                 st.pyplot(fig)
                 
-                # Show scene distribution for missed objects
                 fig, ax = plt.subplots()
                 missed_df['scene'].value_counts().plot(kind='pie', autopct='%1.1f%%', startangle=90)
                 ax.set_title("Scene Distribution of Missed Objects")
