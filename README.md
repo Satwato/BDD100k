@@ -16,7 +16,7 @@ Run the script to create dataframes for analysis:
 
 ```bash
 docker run --rm \
-  -v "<path to assignment_data_bdd>:/data" \
+  -v "/path/to/assignment_data_bdd/:/data" \
   -v "<path to local repo folder>:/bdd_files" \
     bdd-project-env \
     python data/create_dataframes.py \
@@ -29,7 +29,7 @@ Start the Streamlit app to perform analysis:
 
 ```bash
 docker run -p 8501:8501 --rm \
-  -v "<path to assignment_data_bdd>:/data" \
+  -v "/path/to/assignment_data_bdd/:/data" \
   -v "<path to where you pulled the repo>:/bdd_files" \
     bdd-project-env \
     streamlit run data/dashboard_with_val.py -- --train-df-path /bdd_files/extracted_data.pq --val-df-path /bdd_files/extracted_data_val.pq --base-data-path /data
@@ -40,7 +40,7 @@ Generate the necessary COCO files:
 
 ```bash
 docker run --rm \
-  -v "<path to assignment_data_bdd>:/data" \
+  -v "/path/to/assignment_data_bdd/:/data" \
   -v "<path to where you pulled the repo>:/bdd_files" \
     bdd-project-env \
     python data/json_to_coco.py \
@@ -49,7 +49,7 @@ docker run --rm \
     --split-name train
 
 docker run --rm \
-  -v "<path to assignment_data_bdd>:/data" \
+  -v "/path/to/assignment_data_bdd/:/data" \
   -v "<path to where you pulled the repo>:/bdd_files" \
     bdd-project-env \
     python data/json_to_coco.py \
@@ -63,7 +63,7 @@ Train the RT-DETR model:
 
 ```bash
 docker run --rm \
-  -v "<path to assignment_data_bdd>:/data" \
+  -v "/path/to/assignment_data_bdd/:/data" \
   -v "<path to where you pulled the repo>:/bdd_files" \
     bdd-project-env \
     python train/train_rtdetr.py
@@ -74,7 +74,7 @@ Evaluate the trained model and generate metrics:
 
 ```bash
 docker run --rm \
-  -v "<path to assignment_data_bdd>:/data" \
+  -v "/path/to/assignment_data_bdd/:/data" \
   -v "<path to where you pulled the repo>:/bdd_files" \
     bdd-project-env \
     python train/eval_model.py --output-path /bdd_files
@@ -85,7 +85,7 @@ Run the Streamlit app to visualize results and perform qualitative analysis:
 
 ```bash
 docker run -p 8501:8501 --rm \
-  -v "<path to assignment_data_bdd>:/data" \
+  -v "/path/to/assignment_data_bdd/:/data" \
   -v "<path to where you pulled the repo>:/bdd_files" \
     bdd-project-env \
     streamlit run eval/eval_dashboard.py -- --matched-predictions-path /bdd_files/results_iou.json --image-dir /data/bdd100k_images_100k/bdd100k/images/100k/val --processed-data-path /bdd_files/extracted_data_val.pq --coco-annotations-path /data/bdd100k_images_100k/bdd100k/images/100k/val/_annotations.coco.json
